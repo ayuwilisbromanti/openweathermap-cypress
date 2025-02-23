@@ -1,30 +1,87 @@
 describe('Get Geo', ()=>{
-    const apiUrl = 'http://api.openweathermap.org/geo/1.0/direct';
-    const apiKey = 'ac272c9810642e740730f17301289303';
-    const lon = -7.2459717;
-    const lat = 112.7378266;
+    const apiUrl = 'https://api.openweathermap.org/data/2.5/weather';
+    const apiKey = '9ef7c20a49b35570b02334bac2559104';
+    const lon = 112.7378;
+    const lat = -7.246;
     const inv_apiKey = '10ef7c20a49b35570b02334bac2559109';
-    const inv_lon = 879999;
-    const inv_lat = 7378266;
+    const inv_lon = 7378266;
+    const inv_lat = 879999;
 
-    it('Verify valid response with valid paramaters', ()=>{
+    it('Request current weather with valid coordinate', ()=>{
         cy.request({
             method : 'GET',
             url : `${apiUrl}`,
             qs : {
-                q : city,
-                limit : 1,
+                lat : lat,
+                lon : lon,
                 appid : apiKey
             }
         }).as('list')
         
         cy.get('@list').should((response)=>{
             expect(response.status).to.eq(200);
-            expect(response.body).to.be.an('array');
-            expect(response.body.length).to.be.greaterThan(0);
-            expect(response.body[0]).to.have.property('lat');
-            expect(response.body[0]).to.have.property('lon');
-            expect(response.body[0].name).to.eq(city);
+            expect(response.body).to.have.property('coord');
+            expect(response.body).to.have.property('weather');
+            expect(response.body.coord.lon).to.eq(lon);
+            expect(response.body.coord.lat).to.eq(lat);
+            expect(response.body.name).to.eq('Surabaya');
+        })
+    })
+
+    it('Request current weather with invalid lattitude', ()=>{
+        cy.request({
+            method : 'GET',
+            url : `${apiUrl}`,
+            qs : {
+                lat : inv_lat,
+                lon : lon,
+                appid : apiKey
+            },
+            failOnStatusCode: false
+        }).as('list')
+        
+        cy.get('@list').should((response)=>{
+            expect(response.status).to.eq(400);
+            expect(response.body.cod).to.be.eq('400');
+            expect(response.body.message).to.eq('wrong latitude');
+        })
+    })
+
+    it('Request current weather with invalid longitude', ()=>{
+        cy.request({
+            method : 'GET',
+            url : `${apiUrl}`,
+            qs : {
+                lat : lat,
+                lon : inv_lon,
+                appid : apiKey
+            },
+            failOnStatusCode: false
+        }).as('list')
+        
+        cy.get('@list').should((response)=>{
+            expect(response.status).to.eq(400);
+            expect(response.body.cod).to.be.eq('400');
+            expect(response.body.message).to.eq('wrong longitude');
+        })
+    })
+
+    it('Request current weather with invalid longitude', ()=>{
+        cy.request({
+            method : 'GET',
+            url : `${apiUrl}`,
+            qs : {
+                lat : '',
+                lon : '',
+                appid : apiKey
+            },
+            failOnStatusCode: false
+        }).as('list')
+        
+        cy.get('@list').should((response)=>{
+            expect(response.status).to.eq(400);
+            expect(response.body.cod).to.be.eq('400');
+            expect(response.body.message).to.eq('Nothing to geocode');
         })
     })
 })
